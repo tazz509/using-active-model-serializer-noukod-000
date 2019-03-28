@@ -1,46 +1,38 @@
-class PostsController < ApplicationController
-  before_action :set_post, only: [:show, :edit, :update]
-
+class ProductsController < ApplicationController
   def index
-    @posts = Post.all
-    render json: @posts, status: 200
+    @products = Product.all
   end
 
-  def show
-    @post = Post.find(params[:id])
-      #BEFORE using a serializer:
-      render json: @post.to_json(only: [:title, :description, :id],
-                                include: [author: { only: [:name]}])
-       # AFTER USING OUR SERIALIZER
-      # render json: @post, status: 200
+  def inventory
+    product = Product.find(params[:id])
+    render plain: product.inventory > 0 ? true : false
+  end
+
+  def description
+    product = Product.find(params[:id])
+    render plain: product.description
   end
 
   def new
-    @post = Post.new
+    @product = Product.new
   end
 
   def create
-    @post = Post.create(post_params)
-    @post.save
-    render json: @post, status: 201
+    Product.create(product_params)
+    redirect_to products_path
   end
 
-  def edit
+  def show
+    @product = Product.find(params[:id])
+    respond_to do |format|
+      format.html { render :show }
+      format.json { render json: @product.to_json(only: [:id, :name, :description, :price, :inventory])}
+    end
   end
 
-  def update
-    @post.update(post_params)
-    render json: @post, status: 202
-  end
+  private
 
-private
-  # Use callbacks to share common setup or constraints between actions.
-  def set_post
-    @post = Post.find(params[:id])
-  end
-
-  # Never trust parameters from the scary internet, only allow the white list through.
-  def post_params
-    params.require(:post).permit(:title, :description)
+  def product_params
+    params.require(:product).permit(:name, :description, :inventory, :price)
   end
 end
